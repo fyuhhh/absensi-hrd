@@ -1,0 +1,37 @@
+Aktor nya ada: admin dan user
+
+
+Data yang dipegang admin untuk keterangan perorang adalah: NIK - Nama - Waktu Masuk - Waktu Keluar - Total jam bekerja - keterangan - bukti foto - keterangan lemburan
+
+Data rekap  keseluruhan : No - NIK - Nama - Divisi - Periode - Jam Magang - Transport (Rp) - Jumlah Hari - Jumlah lemburan - Total
+
+
+untuk data divisi itu ada Magang, Dw VM, Dw Civil, FoodCourt - buat agar admin itu bisa nambah divisi ini sendiri
+
+Fitur Admin
+- admin perlu nambahin data karyawan yang berupa form yaitu nama- nik - passwowrd -divisi - jam magang - transportnya dia berapa dibayar
+jadi gini admin itu kan ngatur jam magang, kalau seandainya karyawan dengan nama rayhan itu diatur dari awal waktu jam magang nya adalah 09:00 - 15:00, maka ketika dia absensi dihitung nya dari jam 09:00 - 15:00, tapi admin juga bisa atur bahwa karyawan ini fleksibel (berarti ga punya jam kerja) nah kalau gini dia ga ada keterangan keterlambatannya, yang ada keterangan ini hanyalah berapa total jam dan menit dia masuk kerja pada hari itu
+- untuk yang keterangan disini itu kan adalah keterangan dia terlambat berapa menit, kalau dia udah didtetapin jam nya jam 09:00 - 15:00 dan dia absen in pada jam 09:05 dan absen out pada 15:10 dia akan dihitung terlambat 5 menit, jadi absen out ini logikanya selama ga kurang dari jam 15:00 dia aman dan kalau kelewatan pun dia aman, yang jadi masalah adalah ketika dia absen out pas belum jam 15:00 atau lewat nah itu baru dia bermaslaah
+- kan nanti ada case dimana periode 1 juni 2025 - 30 juni 2025, tapi ada case dipertengahan ini si admin mau ganti jam kerjanya dia 2 minggu, jadi admin bisa atur jam (yang diluar default) dan kemudian pilih tanggal berapa sampai berapa
+- untuk yang rekap ful kan ada uang transport, itu dikalikan dengan jumlah hari maka hasilnya ada di total jadi misalnya uang tranportnya Rp. 25000 perhari maka transport x jumlah hari 30 maka 25 ribu x 30 nah hasilnya ada di total
+
+halaman admin:
+-admin punya dashboard yang menampilkan data contohnya dari 100 karyawan yang terdaftar hari itu cuma 98 yang hadir 2 nya ga ada keterangan, jam dan tanggal gede
+- admin punya halaman yang menampilkan daftarin akun (Kelola Akun), disini lah form pembuatan akun itu terjadi
+- detail Perorang, jadi halaman ini menampilkan detail Data dari perorangan itu yang dipilih, menampilkan data yang dipegang admin ntah itu bentuknya tabel apa gimana terserah
+- Rekap full ini menampilkan data rekap keseluruhan yaitu nama juga divisi mereka masing masing (kalau bisa buatkan fungsi filter biar rapi)
+- approval lemburan, jadi approval lemburan ini isinya adalah permintaan dari orang orang kalau mereka mengajukan lemburan, kalau si admin setuju maka akan masuk ke dalam database, tapi kalau si admin menolak lemburan si karyawan maka data tidak akan masuk
+
+fitur user/karyawan
+- jadi si user itu kalau mau absen dia harus login dulu masukin nama dan password yang udah didaftarin admin
+- ketika sudah maka akan ada absensi, nah absensi karyawan ini menggunakan location dengan radius yang udah ditentuin, jadi kalau dia diluar dari radius ini maka tidak dapat absensi, jadi dia absen in menggunakan lokasi dan dia juga harus absen out kalau sudah jam nya
+- untuk lemburan semisal hari senin dia kerja normal jam 9-5 sore, maka sebelum jam 9 dia absen in dan setelah jam 5 dia absen out, terus dia ajuin sendiri untuk lemburan, dia isi data disitu untuk foto dan keterangan dia lemburan, nah ini udah kehitung di sistem tapi belum masuk ke datanya (sampai admin menyetujui) baru kehitung, untuk lemburan juga dia punya waktu lembur IN dan Out, ini yang dihitung total lemburan juga, jadi sekiranya data nya kurang kolom atau baris untuk ini kamu bisa tambahin
+
+halaman karyawan
+- dashboard berisi jam dan tanggal gede, terus dibawahnya itu ada tabel data dia Tanggal - waktu in - waktu out - Keterangan (ini yang terlambat berapa menit) - keterangan lemburan dll
+- kemudian di dashoboard ini juga ada absensi jadi dibawah jam itu ada In dan Out
+- keudian ada halaman lemburan di halaman lemburan ini juga ada jam tanggal, pengajuan, dan in dan out kamu atur dulu aja
+
+jadi catatan bahwa karyawan dan admin itu beda beda untuk fitur dan halamannya, dan jangan lupa tiap tabel yang dipegang admin baik itu halaman detail perorang atau rekap full itu punya yang namanya export ke excell, dan bisa memilih rentang periode, semua atau apapun itu lah
+
+jadi aku pengen kamu rapikan dulu catatan ini semunya yang rapi tanpa menghapus fitur atau datanya, kalau tambahin boleh kalau kurangin jangan karena ini udah minimum banget

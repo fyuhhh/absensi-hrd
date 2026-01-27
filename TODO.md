@@ -1,0 +1,2 @@
+- [x] Fix approveOvertime in lib/storage.ts: Add fallback to recompute hours if o.hours is not a number, update o.hours, and use safe hours variable in all places.
+- [x] Clean up app/(admin)/admin/approvals/page.tsx: Remove references to o.imageUrl and use only o.photo.
