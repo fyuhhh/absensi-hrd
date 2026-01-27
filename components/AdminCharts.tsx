@@ -24,7 +24,14 @@ export function AttendanceChart({ data }: { data: any[] }) {
                 <XAxis dataKey="name" stroke="#94A3B8" fontSize={12} tickLine={false} axisLine={false} />
                 <YAxis stroke="#94A3B8" fontSize={12} tickLine={false} axisLine={false} />
                 <Tooltip
-                    contentStyle={{ backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '8px', color: '#fff' }}
+                    contentStyle={{
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '12px',
+                        color: '#fff',
+                        backdropFilter: 'blur(8px)',
+                        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'
+                    }}
                     itemStyle={{ fontSize: '12px' }}
                 />
                 <Area type="monotone" dataKey="total" stroke="#3B82F6" strokeWidth={3} fillOpacity={1} fill="url(#colorTotal)" />
@@ -49,7 +56,14 @@ export function DailyStatusChart({ stats }: { stats: any }) {
                 <XAxis dataKey="name" stroke="#94A3B8" fontSize={12} tickLine={false} axisLine={false} />
                 <Tooltip
                     cursor={{ fill: 'transparent' }}
-                    contentStyle={{ backgroundColor: '#0F172A', border: '1px solid #334155', borderRadius: '8px', color: '#fff' }}
+                    contentStyle={{
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '12px',
+                        color: '#fff',
+                        backdropFilter: 'blur(8px)',
+                        boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)'
+                    }}
                 />
                 <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                     {data.map((entry, index) => (
