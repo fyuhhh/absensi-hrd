@@ -1,0 +1,8 @@
+tunnel: 2afb8db7-83f6-455a-81c1-9bf6d6b8c58c
+credentials-file: C:\Users\TUF\.cloudflared\2afb8db7-83f6-455a-81c1-9bf6d6b8c58c.json
+protocol: http2
+
+ingress:
+  - hostname: absenin.online
+    service: http://127.0.0.1:3000
+  - service: http_status:404
