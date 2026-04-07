@@ -4,9 +4,10 @@ import { motion } from "framer-motion"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
-import { useAdminDashboard, type Employee, type Attendance } from "@/lib/storage"
+import { useAdminDashboard, useSchedulerSummary, type Employee, type Attendance } from "@/lib/storage"
+import { useSession } from "@/lib/session"
 import { todayYMD } from "@/lib/time"
-import { Users, UserCheck, UserX, Clock, ArrowUpRight, TrendingUp, MoreHorizontal, FileText, ChevronRight, Activity, Zap, AlertCircle, BarChart3, PieChart, LineChart } from "lucide-react"
+import { Users, UserCheck, UserX, Clock, ArrowUpRight, TrendingUp, MoreHorizontal, FileText, ChevronRight, Activity, Zap, AlertCircle, BarChart3, PieChart, LineChart, PlusCircle } from "lucide-react"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 import { ClockDisplay } from "@/components/clock"
@@ -80,12 +81,126 @@ const StatCard = ({ title, value, icon: Icon, trend, color, subtext, onClick }: 
 
 export default function AdminDashboardPage() {
   const router = useRouter()
-  const { data: dashData, isLoading } = useAdminDashboard()
+  const { session } = useSession()
+  const { data: dashData, isLoading: isDashLoading } = useAdminDashboard()
+  const { summary, isLoading: isSummaryLoading } = useSchedulerSummary()
   const [modalType, setModalType] = useState<'present' | 'absent' | 'late' | null>(null)
+
+  const isLoading = isDashLoading || isSummaryLoading || !session;
+  const role = session?.role;
 
   const today = todayYMD()
 
   if (isLoading) return <div className="flex items-center justify-center min-h-[400px] text-slate-400 font-mono text-sm tracking-widest animate-pulse">MEMUAT DASHBOARD...</div>
+
+  if (role === 'admin_tj') {
+    return (
+      <motion.main
+        className="space-y-8 pb-10 max-w-6xl mx-auto px-2"
+        initial="hidden"
+        animate="visible"
+        variants={containerVariants}
+      >
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <h1 className="text-3xl font-black text-white tracking-tighter uppercase italic">
+              Ringkasan <span className="text-fuchsia-500">Jadwal Khusus</span>
+            </h1>
+            <p className="text-slate-500 text-xs font-medium uppercase tracking-widest mt-1">Daftar Override Jadwal Karyawan</p>
+          </div>
+          <div className="bg-slate-900/50 border border-slate-800 px-4 py-2 rounded-2xl">
+             <ClockDisplay />
+          </div>
+        </div>
+
+        <section className="grid gap-4 grid-cols-1 md:grid-cols-3">
+          <StatCard
+            title="Total Override"
+            value={summary.length}
+            icon={Clock}
+            trend="Active"
+            color="bg-fuchsia-600"
+            subtext="Jadwal Khusus Teratur"
+          />
+          <StatCard
+            title="Karyawan"
+            value={new Set(summary.map((s: any) => s.nik)).size}
+            icon={Users}
+            trend="Total"
+            color="bg-blue-600"
+            subtext="Mendapat Jadwal Khusus"
+          />
+          <div className="bg-slate-900/50 border border-slate-800 rounded-[2rem] p-6 flex flex-col justify-center items-center text-center">
+             <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-2">Aksi Cepat</p>
+             <Button 
+                onClick={() => router.push('/admin/schedules')}
+                className="bg-fuchsia-600 hover:bg-fuchsia-500 text-white rounded-2xl px-6 h-11 font-bold shadow-lg shadow-fuchsia-500/20 active:scale-95 transition-all w-full"
+             >
+                <PlusCircle className="size-4 mr-2" />
+                Atur Jadwal Baru
+             </Button>
+          </div>
+        </section>
+
+        <section className="bg-slate-900/50 border border-slate-800 p-8 rounded-[2.5rem] shadow-xl backdrop-blur-sm">
+           <div className="flex items-center justify-between mb-8">
+              <h3 className="text-lg font-black text-white uppercase tracking-wider">Histori & Jadwal Terdata</h3>
+              <Badge className="bg-fuchsia-500/20 text-fuchsia-500 border-none font-black text-[10px] px-3 py-1 uppercase tracking-widest">REALTIME</Badge>
+           </div>
+           
+           <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="border-b border-slate-800">
+                  <TableRow className="hover:bg-transparent border-none">
+                    <TableHead className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Karyawan</TableHead>
+                    <TableHead className="text-slate-500 text-[10px] font-black uppercase tracking-widest text-center">Tanggal</TableHead>
+                    <TableHead className="text-slate-500 text-[10px] font-black uppercase tracking-widest text-center">Jam Kerja</TableHead>
+                    <TableHead className="text-slate-500 text-[10px] font-black uppercase tracking-widest text-right">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {summary.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="h-32 text-center text-slate-600 italic text-sm border-none">Belum ada jadwal khusus yang diatur.</TableCell>
+                    </TableRow>
+                  ) : (
+                    summary.map((s: any) => {
+                      const isPast = new Date(s.date) < new Date(new Date().setHours(0,0,0,0));
+                      return (
+                        <TableRow key={s.id} className="border-b border-slate-800/50 hover:bg-slate-800/20 transition-colors">
+                          <TableCell className="py-4">
+                            <span className="text-sm font-bold text-white uppercase tracking-tight">{s.name}</span>
+                            <p className="text-[10px] text-slate-500 font-mono mt-0.5">{s.nik}</p>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Badge variant="outline" className="bg-slate-800/50 border-slate-700 text-slate-300 font-bold text-[10px]">
+                              {new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(s.date))}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <div className="flex items-center justify-center gap-2">
+                               <Clock className="size-3 text-blue-500" />
+                               <span className="text-xs font-black text-blue-400 font-mono">{(s.startTime || s.start_time) || '-'} - {(s.endTime || s.end_time) || '-'}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                             {isPast ? (
+                               <Badge className="bg-slate-800 text-slate-500 border-none text-[8px] font-black uppercase tracking-tighter">Selesai</Badge>
+                             ) : (
+                               <Badge className="bg-emerald-500 text-white border-none text-[8px] font-black uppercase tracking-tighter shadow-lg shadow-emerald-500/20">Aktif</Badge>
+                             )}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
+                  )}
+                </TableBody>
+              </Table>
+           </div>
+        </section>
+      </motion.main>
+    )
+  }
 
   const totalEmployeesCount = dashData?.totalEmployees || 0
   const presentCount = dashData?.presentCount || 0

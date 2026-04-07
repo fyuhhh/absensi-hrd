@@ -1,6 +1,6 @@
 // Basic domain types for the attendance app
 
-export type Role = "admin" | "user";
+export type Role = "admin" | "user" | "admin_tj";
 
 export type Employee = {
   nik: string;

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 const KEY_USERINFO = "attendance-user-info"
 
 export function useSession() {
-  const [session, setSession] = useState<{nik: string, role: "admin"|"user"} | null>(null);
+  const [session, setSession] = useState<{nik: string, role: "admin" | "user" | "admin_tj"} | null>(null);
   
   useEffect(() => {
     const raw = localStorage.getItem(KEY_USERINFO);
@@ -22,7 +22,7 @@ export function useSession() {
   return { session }
 }
 
-export function useRequireRole(role: "admin" | "user") {
+export function useRequireRole(allowedRoles: ("admin" | "user" | "admin_tj") | ("admin" | "user" | "admin_tj")[]) {
   const router = useRouter()
   // null = not checked yet, true = authorized, false = not authorized
   const [isReady, setIsReady] = useState<boolean | null>(null)
@@ -37,15 +37,22 @@ export function useRequireRole(role: "admin" | "user") {
     
     try {
       const currentSession = JSON.parse(raw);
-      if (currentSession.role !== role) {
-        router.replace(currentSession.role === 'admin' ? '/admin' : '/user')
+      const rolesArray = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+
+      if (!rolesArray.includes(currentSession.role)) {
+        // Redirect to their own dashboard if they have a session but wrong role
+        if (currentSession.role === 'admin' || currentSession.role === 'admin_tj') {
+            router.replace('/admin')
+        } else {
+            router.replace('/user')
+        }
         return
       }
       setIsReady(true)
     } catch (e) {
       router.replace('/')
     }
-  }, []) // Only run once on mount — localStorage doesn't change during session
+  }, [])
 
   return { isReady }
 }

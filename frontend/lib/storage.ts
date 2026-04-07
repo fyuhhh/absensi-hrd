@@ -69,10 +69,10 @@ async function fetcher(url: string) {
 export function useDB() {
   const userInfoStr = typeof window !== 'undefined' ? localStorage.getItem(KEY_USERINFO) : null;
   const session = userInfoStr ? JSON.parse(userInfoStr) : null;
-  const isAdmin = session?.role === 'admin';
+  const canSeeEmployees = session?.role === 'admin' || session?.role === 'admin_tj';
 
-  // Only admins should fetch /employees — regular users would get 403 which used to cause signOut
-  const { data: employees } = useSWR(isAdmin ? '/employees' : null, fetcher, { fallbackData: [] });
+  // Only admins and admin_tj should fetch /employees
+  const { data: employees } = useSWR(canSeeEmployees ? '/employees' : null, fetcher, { fallbackData: [] });
   const { data: divisions } = useSWR('/divisions', fetcher, { fallbackData: [] });
   const { data: attendance } = useSWR('/attendance', fetcher, { fallbackData: [] });
   const { data: overtime } = useSWR('/overtime', fetcher, { fallbackData: [] });
@@ -88,13 +88,23 @@ export function useDB() {
       session: session
     },
     mutate: () => {
-      if (isAdmin) mutate('/employees');
+      if (canSeeEmployees) mutate('/employees');
       mutate('/divisions');
       mutate('/attendance');
       mutate('/overtime');
       mutate('/settings');
     }
   } as any;
+}
+
+export function useSchedulerSummary() {
+  const { data, error, mutate } = useSWR('/scheduler/summary', fetcher);
+  return {
+    summary: data || [],
+    isLoading: !error && !data,
+    isError: error,
+    mutate
+  };
 }
 
 export function useAdminDashboard() {
@@ -343,6 +353,57 @@ export function useTodayStats() {
     return Math.round(sum / todays.length);
   })();
   return { totalEmployees, presentToday, avgLateMins };
+}
+
+export async function upsertSchedule(payload: { 
+  nik: string; 
+  date?: string; 
+  startDate?: string; 
+  endDate?: string; 
+  startTime: string; 
+  endTime: string 
+}): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${API_URL}/scheduler`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({
+        nik: payload.nik,
+        date: payload.date,
+        startDate: payload.startDate,
+        endDate: payload.endDate,
+        startTime: payload.startTime,
+        endTime: payload.endTime
+      }),
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (!res.ok) return { ok: false, error: data.error || "Gagal menyimpan jadwal" };
+    mutate((key) => typeof key === 'string' && key.startsWith('/scheduler/user/'));
+    return { ok: true };
+  } catch (err: any) {
+    return { ok: false, error: err.message };
+  }
+}
+
+export async function deleteSchedule(id: number): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${API_URL}/scheduler/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+      credentials: 'include'
+    });
+    if (!res.ok) throw new Error("Gagal menghapus jadwal");
+    mutate((key) => typeof key === 'string' && key.startsWith('/scheduler/user/'));
+    return { ok: true };
+  } catch (err: any) {
+    return { ok: false, error: err.message };
+  }
+}
+
+export function useSchedules(nik?: string) {
+  const { data, error, isLoading, mutate } = useSWR(nik ? `/scheduler/user/${nik}` : null, fetcher);
+  return { schedules: data || [], error, isLoading, mutate };
 }
 
 export function exportAttendanceCSV(rows: any[]) {

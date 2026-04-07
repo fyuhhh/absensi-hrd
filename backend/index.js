@@ -9,6 +9,7 @@ const divisionRoutes = require('./routes/divisionRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const settingRoutes = require('./routes/settingRoutes');
 const leaveRoutes = require('./routes/leaveRoutes');
+const schedulerRoutes = require('./routes/schedulerRoutes');
 
 const cookieParser = require('cookie-parser');
 const app = express();
@@ -60,6 +61,7 @@ app.use('/api/divisions', divisionRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/settings', settingRoutes);
 app.use('/api/leave', leaveRoutes);
+app.use('/api/scheduler', schedulerRoutes);
 
 // Server Time Route
 app.get('/api/time', (req, res) => {

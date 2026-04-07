@@ -24,4 +24,12 @@ function requireAdmin(req, res, next) {
     }
 }
 
-module.exports = { requireAuth, requireAdmin };
+function requireAdminTJ(req, res, next) {
+    if (req.user && (req.user.role === 'admin' || req.user.role === 'admin_tj')) {
+        next();
+    } else {
+        res.status(403).json({ error: 'Admin or Admin_TJ access required' });
+    }
+}
+
+module.exports = { requireAuth, requireAdmin, requireAdminTJ };

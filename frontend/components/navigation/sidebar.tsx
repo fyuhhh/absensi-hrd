@@ -26,7 +26,7 @@ import { useTheme } from "@/components/theme-provider";
 import { Badge } from "@/components/ui/badge";
 
 interface SidebarProps {
-  role: "admin" | "user";
+  role: "admin" | "user" | "admin_tj";
   isCollapsed?: boolean;
   onToggle?: () => void;
 }
@@ -37,50 +37,67 @@ export function Sidebar({ role, isCollapsed = false, onToggle }: SidebarProps) {
   const { theme, setTheme } = useTheme();
   const { pendingOvertimeCount, pendingLeaveCount } = usePendingCounts();
 
-  const items =
-    role === "admin"
-      ? [
-        { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-        { href: "/admin/employees", label: "Kelola Akun", icon: Users },
-        {
-          href: "/admin/divisions",
-          label: "Pengaturan Divisi",
-          icon: FolderCog,
-        },
-        {
-          href: "/admin/settings",
-          label: "Pengaturan Jam/Lokasi",
-          icon: Settings,
-        },
-        { href: "/admin/recap", label: "Rekap Full", icon: Table },
-        {
-          href: "/admin/approvals",
-          label: "Approval Lemburan",
-          icon: FileCheck,
-          badge: pendingOvertimeCount > 0 ? pendingOvertimeCount : null
-        },
-        {
-          href: "/admin/persons",
-          label: "Detail Perorang",
-          icon: ClipboardList,
-        },
-        { 
-          href: "/admin/leave", 
-          label: "Pengajuan Izin", 
-          icon: FileText,
-          badge: pendingLeaveCount > 0 ? pendingLeaveCount : null
-        },
-      ]
-      : [
-        { href: "/user", label: "Dashboard", icon: LayoutDashboard },
-        { href: "/user/absen", label: "Absen", icon: MapPin },
-        {
-          href: "/user/overtime",
-          label: "Pengajuan Lembur",
-          icon: ClipboardList,
-        },
-        { href: "/user/leave", label: "Pengajuan Izin", icon: FileText },
-      ];
+  let items = [];
+
+  if (role === "admin") {
+    items = [
+      { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/admin/employees", label: "Kelola Akun", icon: Users },
+      {
+        href: "/admin/divisions",
+        label: "Pengaturan Divisi",
+        icon: FolderCog,
+      },
+      {
+        href: "/admin/settings",
+        label: "Pengaturan Jam/Lokasi",
+        icon: Settings,
+      },
+      {
+        href: "/admin/schedules",
+        label: "Jadwal Karyawan",
+        icon: ClipboardList,
+      },
+      { href: "/admin/recap", label: "Rekap Full", icon: Table },
+      {
+        href: "/admin/approvals",
+        label: "Approval Lemburan",
+        icon: FileCheck,
+        badge: pendingOvertimeCount > 0 ? pendingOvertimeCount : null
+      },
+      {
+        href: "/admin/persons",
+        label: "Detail Perorang",
+        icon: ClipboardList,
+      },
+      { 
+        href: "/admin/leave", 
+        label: "Pengajuan Izin", 
+        icon: FileText,
+        badge: pendingLeaveCount > 0 ? pendingLeaveCount : null
+      },
+    ];
+  } else if (role === "admin_tj") {
+    items = [
+      { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+      {
+        href: "/admin/schedules",
+        label: "Jadwal Karyawan",
+        icon: ClipboardList,
+      },
+    ];
+  } else {
+    items = [
+      { href: "/user", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/user/absen", label: "Absen", icon: MapPin },
+      {
+        href: "/user/overtime",
+        label: "Pengajuan Lembur",
+        icon: ClipboardList,
+      },
+      { href: "/user/leave", label: "Pengajuan Izin", icon: FileText },
+    ];
+  }
 
   return (
     <aside className={cn(

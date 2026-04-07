@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
-const { requireAuth, requireAdmin } = require('../middleware/auth');
+const { requireAuth, requireAdmin, requireAdminTJ } = require('../middleware/auth');
 
-router.get('/dashboard-summary', requireAuth, requireAdmin, async (req, res) => {
+router.get('/dashboard-summary', requireAuth, requireAdminTJ, async (req, res) => {
     try {
         const today = new Intl.DateTimeFormat('fr-CA', { timeZone: 'Asia/Makassar', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 

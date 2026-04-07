@@ -35,8 +35,11 @@ export default function LoginPage() {
 
     // Trigger Global Transition
     triggerTransition(() => {
-      if (res.user?.role === "admin") router.replace("/admin")
-      else router.replace("/user")
+      if (res.user?.role === "admin" || res.user?.role === "admin_tj") {
+        router.replace("/admin")
+      } else {
+        router.replace("/user")
+      }
     })
   }
 

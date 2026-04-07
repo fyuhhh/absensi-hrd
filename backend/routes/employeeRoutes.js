@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 const bcrypt = require('bcrypt');
-const { requireAuth, requireAdmin } = require('../middleware/auth');
+const { requireAuth, requireAdmin, requireAdminTJ } = require('../middleware/auth');
 
 // GET /employees/me — allows any authenticated user to get their own employee record
 router.get('/me', requireAuth, async (req, res) => {
@@ -19,7 +19,7 @@ router.get('/me', requireAuth, async (req, res) => {
 });
 
 // GET /employees — admin only, returns all employees
-router.get('/', requireAuth, requireAdmin, async (req, res) => {
+router.get('/', requireAuth, requireAdminTJ, async (req, res) => {
     try {
         const [rows] = await db.execute('SELECT * FROM employees');
         res.json(rows);

@@ -63,7 +63,17 @@ router.post('/check-in', requireAuth, async (req, res) => {
         let note = "Tepat waktu";
 
         if (user.schedule_type === 'fixed') {
-            const defStart = user.default_start || setting.default_start;
+            let defStart = user.default_start || setting.default_start;
+            
+            // Check for date-specific schedule override
+            const [customSchedules] = await db.execute(
+                'SELECT * FROM employee_schedules WHERE nik = ? AND date = ?',
+                [nik, dateStr]
+            );
+            if (customSchedules.length > 0) {
+                defStart = customSchedules[0].start_time;
+            }
+
             const late = diffHMToMinutes(defStart, inTime);
             if (late > 0) {
                 lateMinutes = late;
@@ -108,12 +118,21 @@ router.post('/check-out', requireAuth, async (req, res) => {
         const user = users[0];
         const setting = settings[0];
 
-        const inTime = row.in_time || user.default_start || setting.default_start;
+        const [customSchedules] = await db.execute(
+            'SELECT * FROM employee_schedules WHERE nik = ? AND date = ?',
+            [nik, dateStr]
+        );
+
+        const inTime = row.in_time || (customSchedules.length > 0 ? customSchedules[0].start_time : (user.default_start || setting.default_start));
         const hours = diffHMToMinutes(inTime, outTime) / 60;
         
         let note = row.note || "";
         if (user.schedule_type === 'fixed') {
-            const defEnd = user.default_end || setting.default_end;
+            let defEnd = user.default_end || setting.default_end;
+            if (customSchedules.length > 0) {
+                defEnd = customSchedules[0].end_time;
+            }
+
             if (diffHMToMinutes(outTime, defEnd) > 0) {
                 note = note ? `${note}, Pulang awal` : "Pulang awal";
             }
