@@ -16,6 +16,7 @@ export type Employee = {
   periodeStart?: string; // YYYY-MM-DD
   periodeEnd?: string; // YYYY-MM-DD
   role?: Role; // only "admin" for special login user
+  bypassGps?: boolean;
 };
 
 export type AttendanceRecord = {
@@ -27,6 +28,7 @@ export type AttendanceRecord = {
   lateMinutes?: number;
   note?: string;
   photo?: string | null;
+  inPhoto?: string | null;
   overtimeHours?: number;
   lat?: number;
   lng?: number;

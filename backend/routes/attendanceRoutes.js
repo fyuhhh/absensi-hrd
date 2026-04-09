@@ -40,7 +40,7 @@ router.get('/', requireAuth, async (req, res) => {
 
 router.post('/check-in', requireAuth, async (req, res) => {
     try {
-        const { lat, lng } = req.body;
+        const { lat, lng, photo } = req.body;
         const nik = req.user.nik;
         const dateStr = getTodayYMD();
         const inTime = getNowHM();
@@ -84,11 +84,11 @@ router.post('/check-in', requireAuth, async (req, res) => {
         }
 
         if (existing.length > 0) {
-            await db.execute('UPDATE attendance SET in_time=?, lat=?, lng=?, late_minutes=?, note=? WHERE id=?', 
-                [inTime, lat, lng, lateMinutes, note, existing[0].id]);
+            await db.execute('UPDATE attendance SET in_time=?, lat=?, lng=?, in_photo=?, late_minutes=?, note=? WHERE id=?', 
+                [inTime, lat || null, lng || null, photo || null, lateMinutes, note, existing[0].id]);
         } else {
-            await db.execute('INSERT INTO attendance (nik, date, in_time, lat, lng, late_minutes, note) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                [nik, dateStr, inTime, lat, lng, lateMinutes, note]);
+            await db.execute('INSERT INTO attendance (nik, date, in_time, lat, lng, in_photo, late_minutes, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                [nik, dateStr, inTime, lat || null, lng || null, photo || null, lateMinutes, note]);
         }
 
         res.json({ ok: true });

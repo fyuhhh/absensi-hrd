@@ -68,7 +68,7 @@ export default function SchedulesPage() {
         e.name.toLowerCase().includes(search.toLowerCase()) || 
         e.nik.toLowerCase().includes(search.toLowerCase())
       )
-    ).slice(0, 100); // Increased limit as per user request
+    ).sort((a: Employee, b: Employee) => (a.name || "").localeCompare(b.name || "")).slice(0, 100);
   }, [data?.employees, search]);
 
   const handleUpsert = async (e: React.FormEvent) => {

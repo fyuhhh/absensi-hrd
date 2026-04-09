@@ -13,10 +13,10 @@ export default function PersonsPage() {
   const { data } = useDB();
   const [search, setSearch] = useState("");
 
-  const filteredEmployees = data?.employees.filter((e: any) => 
+  const filteredEmployees = (data?.employees.filter((e: any) => 
     e.name.toLowerCase().includes(search.toLowerCase()) || 
     e.nik.includes(search)
-  ) || [];
+  ) || []).sort((a: any, b: any) => (a.name || "").localeCompare(b.name || ""));
 
   return (
     <main className="space-y-6 pb-20 max-w-5xl mx-auto px-2">

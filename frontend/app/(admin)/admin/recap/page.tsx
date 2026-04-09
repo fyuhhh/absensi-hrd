@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { exportAttendanceCSV, useDB } from "@/lib/storage";
+import { exportAttendanceCSV, useDB, Employee, Attendance, Overtime } from "@/lib/storage";
 import ExcelJS from "exceljs";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -29,8 +29,8 @@ export default function RecapPage() {
     if (!data) return [];
     const fromD = from ? new Date(from) : null;
     const toD = to ? new Date(to) : null;
-    return data.attendance.filter((a) => {
-      const emp = data.employees.find((e) => e.nik === a.nik);
+    return data.attendance.filter((a: Attendance) => {
+      const emp = data.employees.find((e: Employee) => e.nik === a.nik);
       if (!emp) return false;
       if (division !== "all" && emp.division !== division) return false;
       if (q && !`${a.nik} ${emp?.name}`.toLowerCase().includes(q.toLowerCase()))
@@ -43,15 +43,15 @@ export default function RecapPage() {
   }, [data, division, q, from, to]);
 
   const rows =
-    data?.employees.map((emp) => {
+    data?.employees.map((emp: Employee) => {
       const totalDays =
-        data.attendance.filter((att) => att.nik === emp.nik).length ?? 0;
+        data.attendance.filter((att: Attendance) => att.nik === emp.nik).length ?? 0;
 
       const overtimeList =
-        data.overtime.filter((ot) => ot.nik === emp.nik) ?? [];
+        data.overtime.filter((ot: Overtime) => ot.nik === emp.nik) ?? [];
 
       let totalOvertimeMinutes = 0;
-      overtimeList.forEach((ot) => {
+      overtimeList.forEach((ot: Overtime) => {
         if (ot.inTime && ot.outTime) {
           const inParts = ot.inTime.split(":").map(Number);
           const outParts = ot.outTime.split(":").map(Number);
@@ -90,20 +90,22 @@ export default function RecapPage() {
         totalOvertime: totalOvertimeStr,
       };
     }) ?? [];
+  
+  const sortedRows = [...rows].sort((a, b) => (a.name || "").localeCompare(b.name || ""));
 
   const periodeOptions = Array.from(
     new Set(
       data?.employees
-        .map((e) =>
+        .map((e: Employee) =>
           e.periodeStart && e.periodeEnd
             ? `${e.periodeStart} s/d ${e.periodeEnd}`
             : "-"
         )
-        .filter((p) => p !== "-")
+        .filter((p: string) => p !== "-")
     )
-  );
+  ) as string[];
 
-  const filteredRows = rows.filter((r) => {
+  const filteredRows = rows.filter((r: any) => {
     if (periode !== "all" && r.periode !== periode) return false;
     return true;
   });
@@ -128,7 +130,7 @@ export default function RecapPage() {
       width: 20,
     }));
 
-    filteredRows.forEach((row) => {
+    filteredRows.forEach((row: any) => {
       sheet.addRow({
         nik: row.nik,
         name: row.name,
@@ -204,7 +206,7 @@ export default function RecapPage() {
       "Lembur"
     ];
 
-    const tableRows = filteredRows.map((row) => [
+    const tableRows = filteredRows.map((row: any) => [
       row.nik,
       row.name,
       row.division,
@@ -286,7 +288,7 @@ export default function RecapPage() {
               </SelectTrigger>
               <SelectContent className="bg-[#1E293B] border-slate-700 text-white">
                 <SelectItem value="all" className="focus:bg-slate-800 focus:text-white">Semua</SelectItem>
-                {data?.divisions.map((d) => (
+                {data?.divisions.map((d: any) => (
                   <SelectItem key={d.name} value={d.name} className="focus:bg-slate-800 focus:text-white">
                     {d.name}
                   </SelectItem>
@@ -311,7 +313,7 @@ export default function RecapPage() {
               </SelectTrigger>
               <SelectContent className="bg-[#1E293B] border-slate-700 text-white">
                 <SelectItem value="all" className="focus:bg-slate-800 focus:text-white">Semua</SelectItem>
-                {periodeOptions.map((p) => (
+                {periodeOptions.map((p: string) => (
                   <SelectItem key={p} value={p} className="focus:bg-slate-800 focus:text-white">
                     {p}
                   </SelectItem>
@@ -356,7 +358,7 @@ export default function RecapPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
-                {rows.map((r, i) => (
+                {sortedRows.map((r, i) => (
                   <tr key={r.nik + "-" + i} className="hover:bg-slate-800/50 transition-colors">
                     <td className="px-4 py-3 font-medium text-white">{r.nik}</td>
                     <td className="px-4 py-3">{r.name}</td>

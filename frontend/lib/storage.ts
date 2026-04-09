@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import useSWR, { mutate } from "swr";
-import type { DB, Employee, Overtime, Settings, Attendance } from "./types";
+import type { DB, Employee, Overtime, Settings, Attendance, AttendanceRecord } from "./types";
 import { todayYMD, nowHM, diffHMToHours, diffHMToMinutes } from "./time";
 import { downloadCSV } from "./csv";
 
@@ -186,7 +186,8 @@ export async function signIn(nik: string, password: string): Promise<{ ok: boole
     localStorage.setItem(KEY_USERINFO, JSON.stringify({ 
       nik: data.user.nik, 
       role: data.user.role,
-      name: data.user.name 
+      name: data.user.name,
+      bypassGps: data.user.bypass_gps 
     }));
     
     return { ok: true, user: data.user };
@@ -226,7 +227,8 @@ export async function upsertEmployee(emp: Employee): Promise<{ ok: boolean; erro
           scheduleType: emp.scheduleType || 'fixed',
           defaultStart: emp.defaultStart,
           defaultEnd: emp.defaultEnd,
-          transportPerDay: emp.transportPerDay
+          transportPerDay: emp.transportPerDay,
+          bypassGps: emp.bypassGps
       }),
       credentials: 'include'
     });
@@ -269,11 +271,15 @@ export async function saveSettings(patch: Partial<Settings>) {
   mutate('/settings');
 }
 
-export async function checkIn(lat?: number, lng?: number) {
+export async function checkIn(lat?: number, lng?: number, photo?: string) {
   const res = await fetch(`${API_URL}/attendance/check-in`, {
     method: 'POST',
     headers: getHeaders(),
-    body: JSON.stringify({ lat: lat || -1.273985438554323, lng: lng || 116.85826015112536 }), // fallback if no gps
+    body: JSON.stringify({ 
+      lat: lat ?? (photo ? null : -1.273985438554323), 
+      lng: lng ?? (photo ? null : 116.85826015112536),
+      photo: photo
+    }), 
     credentials: 'include'
   });
   if (!res.ok) {
@@ -402,6 +408,16 @@ export async function deleteSchedule(id: number): Promise<{ ok: boolean; error?:
 }
 
 export function useSchedules(nik?: string) {
+  const { data, error, isLoading, mutate } = useSWR(nik ? `/scheduler/user/${nik}` : null, fetcher);
+  return { schedules: data || [], error, isLoading, mutate };
+}
+
+export function useEmployeeMe() {
+  const { data, mutate } = useSWR('/employees/me', fetcher);
+  return { employee: data as Employee | undefined, mutate };
+}
+
+export function useEmployeeTimeline(nik: string) {
   const { data, error, isLoading, mutate } = useSWR(nik ? `/scheduler/user/${nik}` : null, fetcher);
   return { schedules: data || [], error, isLoading, mutate };
 }

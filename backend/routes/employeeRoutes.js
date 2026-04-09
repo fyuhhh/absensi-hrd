@@ -8,7 +8,10 @@ const { requireAuth, requireAdmin, requireAdminTJ } = require('../middleware/aut
 router.get('/me', requireAuth, async (req, res) => {
     try {
         const [rows] = await db.execute(
-            'SELECT e.*, d.name as division_name FROM employees e LEFT JOIN divisions d ON e.division_id = d.id WHERE e.nik = ?',
+            `SELECT e.*, d.name as division_name, e.bypass_gps as bypassGps 
+             FROM employees e 
+             LEFT JOIN divisions d ON e.division_id = d.id 
+             WHERE e.nik = ?`,
             [req.user.nik]
         );
         if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
@@ -21,7 +24,7 @@ router.get('/me', requireAuth, async (req, res) => {
 // GET /employees — admin only, returns all employees
 router.get('/', requireAuth, requireAdminTJ, async (req, res) => {
     try {
-        const [rows] = await db.execute('SELECT * FROM employees');
+        const [rows] = await db.execute('SELECT *, bypass_gps as bypassGps FROM employees');
         res.json(rows);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -32,7 +35,7 @@ router.post('/', requireAuth, requireAdmin, async (req, res) => {
     try {
         const {
             nik, name, password, division, role, status, scheduleType,
-            defaultStart, defaultEnd, transportPerDay
+            defaultStart, defaultEnd, transportPerDay, bypassGps
         } = req.body;
 
         // Upsert logic for simple employee management
@@ -65,18 +68,19 @@ router.post('/', requireAuth, requireAdmin, async (req, res) => {
             defaultStart || null,
             defaultEnd || null,
             transportPerDay || 0,
+            bypassGps ? 1 : 0,
             nik
         ];
 
         if (existing.length > 0) {
             await db.execute(`UPDATE employees SET 
                 name=?, password=?, plaintext_password=?, division_id=?, role=?, status=?, schedule_type=?, 
-                default_start=?, default_end=?, transport_per_day=?
+                default_start=?, default_end=?, transport_per_day=?, bypass_gps=?
                 WHERE nik=?`, values);
         } else {
             await db.execute(`INSERT INTO employees (name, password, plaintext_password, division_id, role, status, 
-                schedule_type, default_start, default_end, transport_per_day, nik)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, values);
+                schedule_type, default_start, default_end, transport_per_day, bypass_gps, nik)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, values);
         }
 
         res.json({ ok: true });

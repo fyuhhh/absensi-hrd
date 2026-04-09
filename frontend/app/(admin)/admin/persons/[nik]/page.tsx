@@ -4,6 +4,14 @@ import { useDB } from "@/lib/storage";
 import { useParams, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 import ExcelJS from "exceljs";
 import dynamic from "next/dynamic";
 import { useState, useEffect, useMemo } from "react";
@@ -305,11 +313,38 @@ export default function PersonDetailPage() {
                                                 {item.note || 'No description logged'}
                                             </p>
                                             {item.type === 'attendance' && (
-                                                <div className="flex items-center justify-end gap-1.5">
-                                                    <span className="text-[8px] font-black uppercase tracking-widest text-slate-600">Sync Status:</span>
-                                                    <Badge className="bg-emerald-500/10 text-emerald-500 p-0 hover:bg-emerald-500/10 border-none uppercase text-[8px] font-black tracking-widest">
-                                                        VERIFIED
-                                                    </Badge>
+                                                <div className="flex flex-col items-end gap-2">
+                                                    {(item.in_photo || item.inPhoto) && (
+                                                        <Dialog>
+                                                            <DialogTrigger asChild>
+                                                                <div className="relative size-12 rounded-xl overflow-hidden border border-slate-700 bg-black group-hover:border-blue-500/50 transition-colors cursor-zoom-in">
+                                                                    <img src={item.in_photo || item.inPhoto} className="size-full object-cover" alt="Check-in Photo" />
+                                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                                                        <ExternalLink className="size-3 text-white" />
+                                                                    </div>
+                                                                </div>
+                                                            </DialogTrigger>
+                                                            <DialogContent className="max-w-3xl p-0 border-none bg-transparent shadow-none">
+                                                                <DialogHeader className="hidden">
+                                                                    <DialogTitle>Check-in Photo</DialogTitle>
+                                                                    <DialogDescription>Preview foto absensi masuk</DialogDescription>
+                                                                </DialogHeader>
+                                                                <div className="relative aspect-[3/4] w-full max-h-[80vh] flex items-center justify-center">
+                                                                    <img 
+                                                                        src={item.in_photo || item.inPhoto} 
+                                                                        className="w-full h-full object-contain rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)]" 
+                                                                        alt="Full Size Photo" 
+                                                                    />
+                                                                </div>
+                                                            </DialogContent>
+                                                        </Dialog>
+                                                    )}
+                                                    <div className="flex items-center justify-end gap-1.5">
+                                                        <span className="text-[8px] font-black uppercase tracking-widest text-slate-600">Sync Status:</span>
+                                                        <Badge className="bg-emerald-500/10 text-emerald-500 p-0 hover:bg-emerald-500/10 border-none uppercase text-[8px] font-black tracking-widest">
+                                                            VERIFIED
+                                                        </Badge>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>

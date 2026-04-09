@@ -38,7 +38,10 @@ export default function EmployeesPage() {
     defaultEnd: "15:00",
     periodeStart: "",
     periodeEnd: "",
+    bypassGps: false,
   });
+
+  const [visibleCount, setVisibleCount] = useState(8);
 
   const reset = () =>
     setForm({
@@ -53,16 +56,23 @@ export default function EmployeesPage() {
       defaultEnd: "15:00",
       periodeStart: "",
       periodeEnd: "",
+      bypassGps: false,
     });
 
   const filteredEmployees = useMemo(() => {
     if (!data?.employees) return [];
-    return data.employees.filter((e: Employee) => 
-      e.name.toLowerCase().includes(search.toLowerCase()) || 
-      e.nik.toLowerCase().includes(search.toLowerCase()) ||
-      e.division.toLowerCase().includes(search.toLowerCase())
-    );
+    return [...data.employees]
+      .filter((e: Employee) => {
+        const n = (e.name || "").toLowerCase();
+        const k = (e.nik || "").toLowerCase();
+        const d = (e.division || "").toLowerCase();
+        const s = search.toLowerCase();
+        return n.includes(s) || k.includes(s) || d.includes(s);
+      })
+      .sort((a, b) => (a.name || "").localeCompare(b.name || ""));
   }, [data?.employees, search]);
+
+  const visibleEmployees = filteredEmployees.slice(0, visibleCount);
 
   return (
     <main className="space-y-6 pb-10 max-w-6xl mx-auto px-2">
@@ -174,7 +184,7 @@ export default function EmployeesPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Status Aku</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Status Akun</Label>
                     <Select
                       value={form.status || "active"}
                       onValueChange={(v) => setForm((f) => ({ ...f, status: v as Employee["status"] }))}
@@ -188,6 +198,19 @@ export default function EmployeesPage() {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                <div className="p-4 bg-orange-500/5 border border-orange-500/10 rounded-2xl flex items-center justify-between">
+                     <div className="flex flex-col">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-orange-400">Bypass GPS</p>
+                        <p className="text-[8px] text-slate-500 font-bold">Absen pakai Foto (Tanpa GPS)</p>
+                     </div>
+                     <input 
+                        type="checkbox" 
+                        className="size-5 rounded-lg accent-orange-500"
+                        checked={!!form.bypassGps}
+                        onChange={(e) => setForm((f) => ({ ...f, bypassGps: e.target.checked }))}
+                     />
                 </div>
 
                 <div className="space-y-2 text-center py-2 bg-blue-500/5 rounded-2xl border border-blue-500/10">
@@ -267,7 +290,7 @@ export default function EmployeesPage() {
 
           <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
             <AnimatePresence mode="popLayout">
-              {filteredEmployees.map((e: Employee, i) => (
+              {visibleEmployees.map((e: Employee, i: number) => (
                 <motion.div
                   key={e.nik}
                   initial={{ opacity: 0, scale: 0.95 }}
@@ -282,7 +305,7 @@ export default function EmployeesPage() {
                   
                   <div className="flex justify-between items-start mb-4">
                     <div className="size-12 bg-slate-800 rounded-2xl flex items-center justify-center font-black text-blue-500 border border-slate-700 group-hover:bg-blue-500/10 transition-colors">
-                      {e.name.charAt(0)}
+                      {(e.name || "?").charAt(0)}
                     </div>
                     <div className="flex gap-1 box-actions">
                       <Button size="icon" variant="ghost" onClick={() => setForm(e)} className="h-9 w-9 rounded-xl text-blue-400 hover:text-blue-300 hover:bg-blue-400/10">
@@ -306,18 +329,18 @@ export default function EmployeesPage() {
 
                   <div className="space-y-3">
                     <div>
-                      <h3 className="text-base font-bold text-white group-hover:text-blue-400 transition-colors line-clamp-1">{e.name}</h3>
+                      <h3 className="text-base font-bold text-white group-hover:text-blue-400 transition-colors line-clamp-1">{e.name || "Tanpa Nama"}</h3>
                       <p className="text-[10px] text-slate-500 font-mono tracking-widest uppercase mt-0.5">NIK: {e.nik}</p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
                       <div className="bg-slate-950/50 p-2 rounded-xl border border-slate-800/50 flex flex-col items-center justify-center text-center">
                           <Building2 className="size-3 text-slate-600 mb-1" />
-                          <p className="text-[9px] text-white font-bold truncate w-full">{e.division}</p>
+                          <p className="text-[9px] text-white font-bold truncate w-full">{e.division || "-"}</p>
                       </div>
                       <div className="bg-slate-950/50 p-2 rounded-xl border border-slate-800/50 flex flex-col items-center justify-center text-center">
                           <Wallet className="size-3 text-emerald-600 mb-1" />
-                          <p className="text-[9px] text-emerald-400 font-bold">Rp {e.transportPerDay?.toLocaleString()}</p>
+                          <p className="text-[9px] text-emerald-400 font-bold">Rp {(e.transportPerDay || 0).toLocaleString()}</p>
                       </div>
                     </div>
 
@@ -326,6 +349,9 @@ export default function EmployeesPage() {
                             <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-[8px] font-black uppercase tracking-widest py-0">AKTIF</Badge>
                         ) : (
                             <Badge className="bg-rose-500/10 text-rose-500 border-rose-500/20 text-[8px] font-black uppercase tracking-widest py-0">NONAKTIF</Badge>
+                        )}
+                        {e.bypassGps && (
+                            <Badge className="bg-orange-500/10 text-orange-500 border-orange-500/20 text-[8px] font-black uppercase tracking-widest py-0">PHOTO ONLY</Badge>
                         )}
                         <Badge variant="outline" className="text-[8px] text-slate-500 border-slate-800 py-0 flex gap-1 items-center">
                             <Clock className="size-2.5" /> {e.scheduleType === 'fixed' ? `${e.defaultStart}-${e.defaultEnd}` : 'FREE'}
@@ -342,6 +368,16 @@ export default function EmployeesPage() {
                 </motion.div>
               ))}
             </AnimatePresence>
+
+            {visibleEmployees.length < filteredEmployees.length && (
+              <Button 
+                variant="ghost" 
+                onClick={() => setVisibleCount(v => v + 8)}
+                className="col-span-full h-12 bg-slate-900/50 hover:bg-slate-800 border border-slate-800 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-all"
+              >
+                Muat Lebih Banyak ({filteredEmployees.length - visibleEmployees.length} lagi)
+              </Button>
+            )}
 
             {filteredEmployees.length === 0 && (
               <div className="col-span-full py-20 text-center bg-slate-900/30 border border-dashed border-slate-800 rounded-[3rem]">
