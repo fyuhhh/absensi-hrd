@@ -2,6 +2,38 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 const { requireAuth } = require('../middleware/auth');
+const fs = require('fs');
+const path = require('path');
+
+const UPLOADS_DIR = path.join(__dirname, '..', 'uploads');
+
+// Ensure uploads directory exists
+if (!fs.existsSync(UPLOADS_DIR)) {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+}
+
+/**
+ * Save a Base64 photo string as a JPG file on disk.
+ * Returns the URL path (e.g. "/uploads/12345_2026-04-13_1681350000.jpg")
+ */
+function savePhotoFile(base64Data, nik, dateStr) {
+    try {
+        // Strip the data:image/jpeg;base64, prefix if present
+        const base64Clean = base64Data.replace(/^data:image\/\w+;base64,/, '');
+        const buffer = Buffer.from(base64Clean, 'base64');
+        
+        const timestamp = Date.now();
+        const filename = `${nik}_${dateStr}_${timestamp}.jpg`;
+        const filepath = path.join(UPLOADS_DIR, filename);
+        
+        fs.writeFileSync(filepath, buffer);
+        
+        return `/uploads/${filename}`;
+    } catch (err) {
+        console.error('[Photo Save Error]', err.message);
+        return null;
+    }
+}
 
 function getTodayYMD() {
     const d = new Date();
@@ -83,12 +115,18 @@ router.post('/check-in', requireAuth, async (req, res) => {
             note = "Fleksibel";
         }
 
+        // Save photo as file if provided (instead of storing Base64 in DB)
+        let photoPath = null;
+        if (photo) {
+            photoPath = savePhotoFile(photo, nik, dateStr);
+        }
+
         if (existing.length > 0) {
             await db.execute('UPDATE attendance SET in_time=?, lat=?, lng=?, in_photo=?, late_minutes=?, note=? WHERE id=?', 
-                [inTime, lat || null, lng || null, photo || null, lateMinutes, note, existing[0].id]);
+                [inTime, lat || null, lng || null, photoPath, lateMinutes, note, existing[0].id]);
         } else {
             await db.execute('INSERT INTO attendance (nik, date, in_time, lat, lng, in_photo, late_minutes, note) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                [nik, dateStr, inTime, lat || null, lng || null, photo || null, lateMinutes, note]);
+                [nik, dateStr, inTime, lat || null, lng || null, photoPath, lateMinutes, note]);
         }
 
         res.json({ ok: true });

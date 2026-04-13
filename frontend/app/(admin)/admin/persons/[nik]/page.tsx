@@ -43,6 +43,17 @@ const OfficeMap = dynamic(() => import("@/components/OfficeMap"), {
   loading: () => <div className="w-full h-full bg-slate-900 animate-pulse flex items-center justify-center text-slate-500 text-[10px] uppercase font-black">Inisialisasi Peta...</div>
 });
 
+/** Resolve photo source: file path from server OR legacy Base64 string */
+function getPhotoSrc(photo: string | null | undefined): string {
+  if (!photo) return '';
+  // New format: file path like /uploads/12345_2026-04-13_xxx.jpg
+  if (photo.startsWith('/uploads/')) return photo;
+  // Legacy format: data:image/jpeg;base64,...
+  if (photo.startsWith('data:')) return photo;
+  // Fallback: assume it's a raw base64 string without prefix
+  return `data:image/jpeg;base64,${photo}`;
+}
+
 export default function PersonDetailPage() {
   const { nik } = useParams() as { nik: string };
   const { data } = useDB();
@@ -318,7 +329,7 @@ export default function PersonDetailPage() {
                                                         <Dialog>
                                                             <DialogTrigger asChild>
                                                                 <div className="relative size-12 rounded-xl overflow-hidden border border-slate-700 bg-black group-hover:border-blue-500/50 transition-colors cursor-zoom-in">
-                                                                    <img src={item.in_photo || item.inPhoto} className="size-full object-cover" alt="Check-in Photo" />
+                                                                    <img src={getPhotoSrc(item.in_photo || item.inPhoto)} className="size-full object-cover" alt="Check-in Photo" />
                                                                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                                                                         <ExternalLink className="size-3 text-white" />
                                                                     </div>
@@ -331,7 +342,7 @@ export default function PersonDetailPage() {
                                                                 </DialogHeader>
                                                                 <div className="relative aspect-[3/4] w-full max-h-[80vh] flex items-center justify-center">
                                                                     <img 
-                                                                        src={item.in_photo || item.inPhoto} 
+                                                                        src={getPhotoSrc(item.in_photo || item.inPhoto)} 
                                                                         className="w-full h-full object-contain rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)]" 
                                                                         alt="Full Size Photo" 
                                                                     />
